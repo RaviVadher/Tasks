@@ -208,5 +208,17 @@ LEFT JOIN leave_types lt
     ON lt.pk_types_id = lb.fk_balance_type
 GROUP BY e.emp_name;
 
+SELECT 
+    e.emp_name,
+    SUM(ISNULL(lb.leave_taken, 0)) AS TotalLeavesTaken,
+    SUM(lt.total - ISNULL(lb.leave_taken, 0)) AS TotalRemainingLeaves
+FROM employees e
+CROSS JOIN leave_types lt
+LEFT JOIN leave_balances lb
+    ON lb.fk_balance_emp = e.pk_emp_id
+    AND lb.fk_balance_type = lt.pk_types_id
+    AND lb.Year = YEAR(GETDATE())
+GROUP BY e.emp_name;
+
 
 
