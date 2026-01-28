@@ -11,3 +11,104 @@ Write the below queries :
 Display employee wise total remaining leave balance 
 Display employee-wise, LeaveType-wise  total remaining leave balance
 Write a query to display all employees with their total leaves taken and total remaining leave balance. 
+use leave_system_management_db;
+
+--departments 
+CREATE TABLE departments (
+    pk_dept_id INT PRIMARY KEY IDENTITY(1,1) ,
+    dept_name VARCHAR(100) NOT NULL
+);
+
+--employees
+CREATE TABLE employees (
+    pk_emp_id INT PRIMARY KEY IDENTITY(1,1),
+    emp_name NVARCHAR(100) NOT NULL,
+    fk_dept_emp INT REFERENCES departments(pk_dept_id),
+    joining_date DATE NOT NULL
+);
+
+-- leave_types
+CREATE TABLE leave_types (
+    pk_types_id INT PRIMARY KEY IDENTITY(1,1),
+    leave_type_name NVARCHAR(50) NOT NULL,
+    total INT NOT NULL
+);
+
+-- leave_application_table
+CREATE TABLE leave_applications (
+    pk_app_id INT PRIMARY KEY IDENTITY(1,1),
+    fk_app_emp INT FOREIGN KEY REFERENCES employees(pk_emp_id),
+    fk_app_type INT FOREIGN KEY REFERENCES  leave_types(pk_types_id),
+    leave_date DATE NOT NULL,
+    approvedby NVARCHAR(150),
+    Status NVARCHAR(20) CHECK (Status IN ('Approved','Rejected'))
+);
+
+-- Leav_balances
+CREATE TABLE leave_balances (
+    fk_balance_emp INT FOREIGN KEY REFERENCES employees(pk_emp_id),
+    fk_balance_type INT FOREIGN KEY REFERENCES  leave_types(pk_types_id),
+    Year INT NOT NULL,
+    leave_taken INT DEFAULT 0,
+    PRIMARY KEY (fk_balance_emp, fk_balance_type, Year)
+);
+
+
+--insertion
+INSERT INTO departments (dept_name) VALUES ('HR'), ('IT'), ('Finance');
+
+SELECT * from departments;
+
+
+INSERT INTO employees (emp_name, fk_dept_emp, joining_date)
+VALUES ('Raj Parmar', 2, '2025-12-19'),
+       ('Pay Patel', 2, '2025-12-15'),
+       ('Ravi Sharma', 2, '2025-12-19');
+
+SELECT * from employees;
+
+
+INSERT INTO leave_types (leave_type_name,total )
+VALUES ('Earned Leave', 10),
+       ('Casual Leave', 12),
+       ('public Holiday',8);
+
+select * from leave_types;
+
+
+INSERT INTO leave_applications (fk_app_emp,fk_app_type,leave_date,approvedby,Status )
+VALUES (3,2,'2025-12-13','HR','Approved'),
+        (4,2,'2025-12-28','HR','Approved'),
+        (5,2,'2025-12-28','HR','Approved');
+
+Delete from leave_applications where fk_app_emp=3;
+
+select * from leave_applications;
+
+INSERT INTO leave_balances (fk_balance_emp,fk_balance_type,Year,leave_taken )
+VALUES (1,1,2025,7),
+        (2,2,2026,5);
+
+
+SELECT 
+    e.emp_name,
+    l.leave_date,
+    l.approvedby
+FROM leave_applications l
+Right JOIN employees e ON l.fk_app_emp = e.pk_emp_id
+WHERE YEAR(l.leave_date) = 2026
+  AND l.Status = 'Approved'
+ORDER BY l.leave_date;
+
+
+
+SELECT 
+    e.emp_name,
+    l.leave_date,
+    d.dept_name
+FROM leave_applications l
+LEFT JOIN employees e
+    ON e.pk_emp_id = l.fk_app_emp
+JOIN departments D ON e.fk_dept_emp = d.pk_dept_id
+    AND MONTH(l.leave_date) = 12 AND YEAR(l.leave_date)=2025
+ORDER BY l.leave_date;
