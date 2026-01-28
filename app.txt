@@ -145,3 +145,42 @@ WHERE la.leave_date BETWEEN CAST(GETDATE() AS DATE)
 AND la.Status = 'Approved'
 ORDER BY la.leave_date;
 
+
+----new
+SELECT 
+    e.emp_name AS EmployeeName,
+    SUM(lt.total - lb.leave_taken) AS TotalRemainingLeaves
+FROM leave_balances lb
+JOIN employees e 
+    ON lb.fk_balance_emp = e.pk_emp_id
+JOIN leave_types lt 
+    ON lb.fk_balance_type = lt.pk_types_id
+WHERE lb.Year = YEAR(GETDATE())
+GROUP BY e.emp_name;
+
+
+SELECT 
+    e.emp_name AS EmployeeName,
+    lt.leave_type_name AS LeaveType,
+    (lt.total - lb.leave_taken) AS RemainingLeaves
+FROM leave_balances lb
+JOIN employees e 
+    ON lb.fk_balance_emp = e.pk_emp_id
+JOIN leave_types lt 
+    ON lb.fk_balance_type = lt.pk_types_id
+WHERE lb.Year = YEAR(GETDATE())
+ORDER BY e.emp_name, lt.leave_type_name;
+
+SELECT 
+    e.emp_name AS EmployeeName,
+    ISNULL(SUM(lb.leave_taken), 0) AS TotalLeavesTaken,
+    ISNULL(SUM(lt.total - lb.leave_taken), 0) AS TotalRemainingLeaves
+FROM employees e
+LEFT JOIN leave_balances lb
+    ON e.pk_emp_id = lb.fk_balance_emp
+    AND lb.Year = YEAR(GETDATE())
+LEFT JOIN leave_types lt
+    ON lb.fk_balance_type = lt.pk_types_id
+GROUP BY e.emp_name;
+
+
