@@ -112,3 +112,36 @@ LEFT JOIN employees e
 JOIN departments D ON e.fk_dept_emp = d.pk_dept_id
     AND MONTH(l.leave_date) = 12 AND YEAR(l.leave_date)=2025
 ORDER BY l.leave_date;
+
+--------------new
+SELECT DISTINCT
+    e.emp_name AS EmployeeName
+FROM leave_applications la
+JOIN employees e 
+    ON la.fk_app_emp = e.pk_emp_id
+WHERE la.leave_date = CAST(GETDATE() AS DATE)
+AND la.Status = 'Approved';
+
+SELECT 
+    lt.leave_type_name,
+    COUNT(*) AS TotalLeaves
+FROM leave_applications la
+JOIN leave_types lt 
+    ON la.fk_app_type = lt.pk_types_id
+WHERE MONTH(la.leave_date) = MONTH(GETDATE())
+AND YEAR(la.leave_date) = YEAR(GETDATE())
+AND la.Status = 'Approved'
+GROUP BY lt.leave_type_name;
+
+
+SELECT 
+    e.emp_name AS EmployeeName,
+    la.leave_date AS LeaveDate
+FROM leave_applications la
+JOIN employees e 
+    ON la.fk_app_emp = e.pk_emp_id
+WHERE la.leave_date BETWEEN CAST(GETDATE() AS DATE)
+                         AND DATEADD(WEEK, 2, CAST(GETDATE() AS DATE))
+AND la.Status = 'Approved'
+ORDER BY la.leave_date;
+
