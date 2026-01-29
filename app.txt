@@ -240,3 +240,18 @@ BEGIN
 END;
 
 
+CREATE TRIGGER trg_update_balance_on_leave_approval
+ON leave_applications
+AFTER INSERT, UPDATE
+AS
+BEGIN
+    UPDATE lb
+    SET lb.leave_taken = lb.leave_taken + 1
+    FROM leave_balances lb
+    JOIN inserted i
+        ON lb.fk_balance_emp = i.fk_app_emp
+        AND lb.fk_balance_type = i.fk_app_type
+        AND lb.Year = YEAR(i.leave_date)
+    WHERE i.Status = 'Approved';
+END;
+
