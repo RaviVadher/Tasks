@@ -11,7 +11,86 @@ Create a stored procedure which runs at the start of every year. For all active 
 Create a stored procedure which accepts LeaveId, ApprovedBy, ApprovalStatus and Updates Leave Request status of employee based on approval status
 Create a trigger that ensures before adding a new leave if Remaining balance > Requested leave days else Raise a proper error message.
 
+CREATE PROCEDURE sp_update_leave_status
+    @LeaveId INT,
+    @ApprovedBy NVARCHAR(150),
+    @ApprovalStatus NVARCHAR(20)
+AS
+BEGIN
+    UPDATE leave_applications
+    SET 
+        Status = @ApprovalStatus,
+        approvedby = @ApprovedBy
+    WHERE pk_app_id = @LeaveId;
+END;
 
+CREATE TRIGGER trg_check_leave_balance_before_insert
+ON leave_applications
+INSTEAD OF INSERT
+AS
+BEGIN
+    -- Check if any inserted leave has insufficient balance
+    IF EXISTS (
+        SELECT 1
+        FROM inserted i
+        JOIN leave_balances lb
+            ON lb.fk_balance_emp = i.fk_app_emp
+            AND lb.fk_balance_type = i.fk_app_type
+            AND lb.Year = YEAR(i.leave_date)
+        WHERE (lb.total_allowed - lb.leave_taken) < 1
+    )
+    BEGIN
+        RAISERROR (
+            'Leave request cannot be submitted. Insufficient leave balance.',
+            16, 1
+        );
+        RETURN;
+    END;
+
+    -- If balance is sufficient, allow insert
+    INSERT INTO leave_applications
+        (fk_app_emp, fk_app_type, leave_date, approvedby, Status)
+    SELECT 
+        fk_app_emp,
+        fk_app_type,
+        leave_date,
+        approvedby,
+        Status
+    FROM inserted;
+END;
+
+
+CREATE PROCEDURE sp_add_yearly_leave_quota
+    @Year INT
+AS
+BEGIN
+    /* 1. UPDATE existing leave balance records */
+    UPDATE lb
+    SET lb.total_allowed = lb.total_allowed + lt.total
+    FROM leave_balances lb
+    JOIN leave_types lt
+        ON lt.pk_types_id = lb.fk_balance_type
+    WHERE lb.Year = @Year;
+
+    /* 2. INSERT missing leave balance records */
+    INSERT INTO leave_balances
+        (fk_balance_emp, fk_balance_type, Year, leave_taken, total_allowed)
+    SELECT 
+        e.pk_emp_id,
+        lt.pk_types_id,
+        @Year,
+        0,
+        lt.total
+    FROM employees e
+    CROSS JOIN leave_types lt
+    WHERE NOT EXISTS (
+        SELECT 1
+        FROM leave_balances lb
+        WHERE lb.fk_balance_emp = e.pk_emp_id
+          AND lb.fk_balance_type = lt.pk_types_id
+          AND lb.Year = @Year
+    );
+END;
 
 --departments 
 CREATE TABLE departments (
