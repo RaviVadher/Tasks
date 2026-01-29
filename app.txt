@@ -215,5 +215,23 @@ LEFT JOIN leave_balances lb
     AND lb.Year = YEAR(GETDATE())
 GROUP BY e.emp_name;
 
+CREATE TRIGGER trg_restore_balance_on_leave_cancel
+ON leave_applications
+AFTER UPDATE
+AS
+BEGIN
+    UPDATE lb
+    SET lb.leave_taken = lb.leave_taken - 1
+    FROM leave_balances lb
+    JOIN deleted d
+        ON lb.fk_balance_emp = d.fk_app_emp
+        AND lb.fk_balance_type = d.fk_app_type
+        AND lb.Year = YEAR(d.leave_date)
+    JOIN inserted i
+        ON i.pk_app_id = d.pk_app_id
+    WHERE d.Status = 'Approved'
+      AND i.Status = 'Rejected'
+      AND lb.leave_taken > 0;
+END;
 
 
