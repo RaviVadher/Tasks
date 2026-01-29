@@ -1,17 +1,12 @@
-Design a database for Leave Management system in a company. 
-Generate reports of all leaves taken throughout the year sorted by Leave date 
-Report should have details: EmployeeName, LeaveDate, Approved By
-Generate Department-wise report of employee leaves for next 1 month sorted by Leave date.
-Generate the list of employees who are on leave today. 
-Generate report for different leave types for current month only
-Generate report for leaves which are yet to be taken for current and next week (for all employees)
-Modify your database to store the total Leave balance and remaining leave balance for each Employee for each Leave type. 
-Write the Create/Update/Insert queries for the same 
-Write the below queries : 
-Display employee wise total remaining leave balance 
-Display employee-wise, LeaveType-wise  total remaining leave balance
-Write a query to display all employees with their total leaves taken and total remaining leave balance. 
-use leave_system_management_db;
+For Leave Management system, create SP, Triggers and Views for: 
+Write a function to return the number of leaves to be added if an employee joins anytime during the year, considering 1 day leave per month. 
+Write a stored procedure such that as soon as a new Employee is added, his leave balance is added in Leave Balance table. Use the function created in previous step.
+Create a stored procedure to cancel a Leave Request, update the leave balance of cancelled leave. and Rollback if any step fails.
+Create a view to see the approved leave details for next 1 month for all employees.
+Create a view to have Department-wise, employee-wise total number of all leaves. 
+Write a trigger such that when a new Leave Type is added, its related Leave details and balance are added as well. 
+Write a trigger such that as soon as a Leave Request is approved, the remaining balance should get updated.
+
 
 --departments 
 CREATE TABLE departments (
