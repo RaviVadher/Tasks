@@ -7,6 +7,11 @@ Create a view to have Department-wise, employee-wise total number of all leaves.
 Write a trigger such that when a new Leave Type is added, its related Leave details and balance are added as well. 
 Write a trigger such that as soon as a Leave Request is approved, the remaining balance should get updated.
 
+Create a stored procedure which runs at the start of every year. For all active employees, For all leave types, Add yearly quota from Leave Type table into Leave Balance(If balance record exists → update, If not → insert)                              Example: Leave Type can be: Earned Leave: 12, Casual Leave: 6, 10 Public Holidays 	
+Create a stored procedure which accepts LeaveId, ApprovedBy, ApprovalStatus and Updates Leave Request status of employee based on approval status
+Create a trigger that ensures before adding a new leave if Remaining balance > Requested leave days else Raise a proper error message.
+
+
 
 --departments 
 CREATE TABLE departments (
